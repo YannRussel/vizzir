@@ -1,5 +1,4 @@
 from pathlib import Path
-import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -66,16 +65,15 @@ USE_I18N = True
 USE_TZ = True
 
 # =============================================================
-# STATIC FILES — Configuration PythonAnywhere
+# STATIC FILES
 # =============================================================
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = '/home/yannisraelrussel/vizir_project/staticfiles'
+STATIC_ROOT = '/home/yannisraelrussel/vizzir/staticfiles'
 
 # =============================================================
-# MEDIA FILES — Configuration PythonAnywhere
+# MEDIA FILES
 # =============================================================
 MEDIA_URL = '/media/'
-MEDIA_ROOT = '/home/yannisraelrussel/vizir_project/media'
+MEDIA_ROOT = '/home/yannisraelrussel/vizzir/media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
