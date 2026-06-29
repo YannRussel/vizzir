@@ -1,0 +1,19 @@
+{% extends 'troncons/base.html' %}
+{% block title %}Supprimer {{ troncon.nom }} — VIZIR{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 2rem auto;">
+    <div class="card-header bg-danger text-white fw-bold">
+        <i class="bi bi-exclamation-triangle me-2"></i>Confirmer la suppression
+    </div>
+    <div class="card-body text-center py-4">
+        <p class="mb-3">Supprimer le tronçon <strong>{{ troncon.nom }}</strong> et tous ses résultats ?</p>
+        <p class="text-muted small">Cette action est irréversible.</p>
+        <form method="post" class="d-flex gap-2 justify-content-center mt-3">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-2"></i>Supprimer</button>
+            <a href="{% url 'troncon_detail' troncon.pk %}" class="btn btn-outline-secondary">Annuler</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

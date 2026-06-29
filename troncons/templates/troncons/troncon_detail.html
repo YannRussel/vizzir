@@ -1,0 +1,395 @@
+{% extends 'troncons/base.html' %}
+{% block title %}{{ troncon.nom }} — VIZIR{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Tableau de bord</a></li>
+                <li class="breadcrumb-item active">{{ troncon.nom }}</li>
+            </ol>
+        </nav>
+        <h4 class="mb-0 fw-bold" style="color: var(--primary)">{{ troncon.nom }}</h4>
+        <p class="text-muted mb-0">{{ troncon.route }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'saisie_parametres' troncon.pk %}" class="btn btn-success">
+            <i class="bi bi-calculator me-2"></i>Nouvelle inspection
+        </a>
+        <a href="{% url 'troncon_edit' troncon.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-pencil me-2"></i>Modifier
+        </a>
+        {% if last_resultat %}
+        <a href="{% url 'export_pdf' troncon.pk %}" class="btn btn-outline-danger">
+            <i class="bi bi-file-pdf me-2"></i>PDF
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- Infos tronçon -->
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header fw-semibold" style="background: #EFF6FF; color: var(--primary);">
+                <i class="bi bi-info-circle me-2"></i>Identification
+            </div>
+            <div class="card-body">
+                <table class="table table-sm mb-0">
+                    <tr><td class="text-muted small fw-semibold">PK début</td><td>{{ troncon.pk_debut|default:"—" }}</td></tr>
+                    <tr><td class="text-muted small fw-semibold">PK fin</td><td>{{ troncon.pk_fin|default:"—" }}</td></tr>
+                    <tr><td class="text-muted small fw-semibold">Longueur</td><td>{{ troncon.longueur_m|default:"—" }} m</td></tr>
+                    <tr><td class="text-muted small fw-semibold">Localisation</td><td>{{ troncon.localisation|default:"—" }}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% if last_resultat %}
+    <!-- Résultat principal -->
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-header fw-semibold d-flex justify-content-between align-items-center
+                {% if last_resultat.niveau_risque == 'Critique' %}bg-danger
+                {% elif last_resultat.niveau_risque == 'Élevé' %}bg-warning
+                {% else %}bg-success{% endif %} text-white">
+                <span><i class="bi bi-activity me-2"></i>Dernier résultat</span>
+                <span class="badge bg-white text-dark">{{ last_resultat.date_calcul|date:"d/m/Y H:i" }}</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 text-center">
+                    <div class="col-3">
+                        <div class="p-2 rounded" style="background: #EFF6FF;">
+                            <div class="fw-bold fs-4" style="color: var(--primary);">{{ last_resultat.parametres.id0_vizir }}/7</div>
+                            <div class="small text-muted">ID₀ initial</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-2 rounded" style="background: #FEF3C7;">
+                            <div class="fw-bold fs-4" style="color: var(--warning);">{{ last_resultat.R|floatformat:3 }}</div>
+                            <div class="small text-muted">R (pts/an)</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-2 rounded" style="background: #FEE2E2;">
+                            <div class="fw-bold fs-4 text-danger">
+                                {% if last_resultat.t_critique_ans %}{{ last_resultat.t_critique_ans|floatformat:1 }} ans{% else %}Stable{% endif %}
+                            </div>
+                            <div class="small text-muted">T_critique</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-2 rounded
+                            {% if last_resultat.niveau_risque == 'Critique' %}bg-danger
+                            {% elif last_resultat.niveau_risque == 'Élevé' %}bg-warning
+                            {% else %}bg-success{% endif %}">
+                            <div class="fw-bold fs-6 text-white">{{ last_resultat.niveau_risque }}</div>
+                            <div class="small text-white opacity-75">Niveau de risque</div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-3">
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="section-title">Contributions</p>
+                        <table class="table table-sm">
+                            <tr>
+                                <td class="small">Trafic αA</td>
+                                <td class="fw-semibold text-primary">{{ last_resultat.contrib_trafic|floatformat:3 }}</td>
+                                <td class="small text-muted">{{ last_resultat.contrib_trafic_pct|floatformat:1 }}%</td>
+                            </tr>
+                            <tr>
+                                <td class="small">Climat βCL</td>
+                                <td class="fw-semibold text-success">{{ last_resultat.contrib_climat|floatformat:3 }}</td>
+                                <td class="small text-muted">{{ last_resultat.contrib_climat_pct|floatformat:1 }}%</td>
+                            </tr>
+                            <tr>
+                                <td class="small">Matériau −γM</td>
+                                <td class="fw-semibold text-danger">{{ last_resultat.contrib_materiau|floatformat:3 }}</td>
+                                <td class="small text-muted">{{ last_resultat.contrib_materiau_pct|floatformat:1 }}%</td>
+                            </tr>
+                        </table>
+                        <p class="small"><b>Facteur dominant :</b> {{ last_resultat.facteur_dominant }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="section-title">Projections ID(t)</p>
+                        <table class="table table-sm">
+                            <thead><tr><th class="small">Horizon</th><th class="small">ID projeté</th><th class="small">Statut</th></tr></thead>
+                            <tbody>
+                            {% for h, v in last_resultat.get_projections_display %}
+                            <tr>
+                                <td class="small">{{ h }} ans</td>
+                                <td class="fw-semibold">{{ v|floatformat:2 }}</td>
+                                <td>
+                                    {% if v >= 7 %}<span class="badge bg-danger small">Critique</span>
+                                    {% elif v >= 5 %}<span class="badge bg-warning text-dark small">Dégradé</span>
+                                    {% else %}<span class="badge bg-success small">OK</span>{% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphiques interactifs -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header fw-semibold" style="background: #EFF6FF; color: var(--primary);">
+                <i class="bi bi-graph-up me-2"></i>Graphiques
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <h6 class="section-title">Projection ID(t)</h6>
+                        <canvas id="chartProjection" height="220"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="section-title">Contributions au rythme R</h6>
+                        <canvas id="chartContrib" height="220"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="section-title">Contributions relatives (%)</h6>
+                        <canvas id="chartContribPct" height="220"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="section-title">Paramètres A, CL, M</h6>
+                        <canvas id="chartParams" height="220"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommandations -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header fw-semibold" style="background: #EFF6FF; color: var(--primary);">
+                <i class="bi bi-clipboard-check me-2"></i>Recommandations de gestion
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">Facteur dominant : <strong>{{ last_resultat.facteur_dominant }}</strong></p>
+                <ul class="list-unstyled">
+                {% for reco in last_resultat.recommandations.splitlines %}
+                    {% if reco %}
+                    <li class="mb-2">
+                        <i class="bi bi-arrow-right-circle-fill text-primary me-2"></i>{{ reco }}
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coefficients -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header fw-semibold" style="background: #EFF6FF; color: var(--primary);">
+                <i class="bi bi-sliders me-2"></i>Coefficients utilisés
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr><td>α (trafic)</td><td class="fw-bold">{{ last_resultat.alpha_utilise }}</td></tr>
+                    <tr><td>β (climat)</td><td class="fw-bold">{{ last_resultat.beta_utilise }}</td></tr>
+                    <tr><td>γ (matériau)</td><td class="fw-bold">{{ last_resultat.gamma_utilise }}</td></tr>
+                </table>
+                <p class="small text-muted mb-0">R = α·A + β·CL − γ·M = <strong>{{ last_resultat.R|floatformat:3 }} pts/an</strong></p>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="col-12">
+        <div class="card text-center py-5">
+            <i class="bi bi-calculator" style="font-size: 2.5rem; color: #94a3b8;"></i>
+            <p class="text-muted mt-3">Aucune simulation effectuée pour ce tronçon.</p>
+            <a href="{% url 'saisie_parametres' troncon.pk %}" class="btn btn-primary">
+                <i class="bi bi-plus me-2"></i>Saisir les données et lancer le calcul
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Historique -->
+    {% if resultats.count > 1 %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header fw-semibold" style="background: #EFF6FF; color: var(--primary);">
+                <i class="bi bi-clock-history me-2"></i>Historique des simulations
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm table-hover mb-0">
+                    <thead style="background: #f8fafc;">
+                        <tr><th class="px-3">Date</th><th>ID₀</th><th>R</th><th>Risque</th><th>Facteur dominant</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for r in resultats %}
+                    <tr>
+                        <td class="px-3 small">{{ r.date_calcul|date:"d/m/Y H:i" }}</td>
+                        <td>{{ r.parametres.id0_vizir|default:"—" }}/7</td>
+                        <td>{{ r.R|floatformat:3 }}</td>
+                        <td>
+                            <span class="badge
+                                {% if r.niveau_risque == 'Critique' %}bg-danger
+                                {% elif r.niveau_risque == 'Élevé' %}bg-warning text-dark
+                                {% else %}bg-success{% endif %}">
+                                {{ r.niveau_risque }}
+                            </span>
+                        </td>
+                        <td class="small">{{ r.facteur_dominant }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'troncon_delete' troncon.pk %}" class="btn btn-sm btn-outline-danger">
+        <i class="bi bi-trash me-1"></i>Supprimer ce tronçon
+    </a>
+</div>
+
+<!-- Données JSON pour Chart.js -->
+{% if last_resultat %}
+<script id="detailData" type="application/json">
+{
+    "id0": {{ last_resultat.parametres.id0_vizir }},
+    "R": {{ last_resultat.R }},
+    "A":  {{ last_resultat.parametres.A|default:0 }},
+    "CL": {{ last_resultat.parametres.CL|default:0 }},
+    "M":  {{ last_resultat.parametres.M|default:0 }},
+    "contrib_trafic":   {{ last_resultat.contrib_trafic }},
+    "contrib_climat":   {{ last_resultat.contrib_climat }},
+    "contrib_materiau": {{ last_resultat.contrib_materiau }},
+    "contrib_trafic_pct":   {{ last_resultat.contrib_trafic_pct }},
+    "contrib_climat_pct":   {{ last_resultat.contrib_climat_pct }},
+    "contrib_materiau_pct": {{ last_resultat.contrib_materiau_pct }},
+    "horizons": [{% for h, v in last_resultat.get_projections_display %}{{ h }}{% if not forloop.last %},{% endif %}{% endfor %}],
+    "valeurs":  [{% for h, v in last_resultat.get_projections_display %}{{ v }}{% if not forloop.last %},{% endif %}{% endfor %}]
+}
+</script>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if last_resultat %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const d = JSON.parse(document.getElementById('detailData').textContent);
+
+// ── Projection ID(t) ──
+new Chart(document.getElementById('chartProjection'), {
+    type: 'line',
+    data: {
+        datasets: [
+            {
+                label: 'ID(t)',
+                data: [{ x: 0, y: d.id0 }, ...d.horizons.map((h, i) => ({ x: h, y: d.valeurs[i] }))],
+                borderColor: '#2563EB',
+                backgroundColor: '#2563EB22',
+                tension: 0.3,
+                fill: true,
+                pointRadius: 6,
+                pointHoverRadius: 9,
+            },
+            {
+                label: 'Seuil critique ID=7',
+                data: [{ x: 0, y: 7 }, { x: Math.max(...d.horizons) + 2, y: 7 }],
+                borderColor: '#DC2626',
+                borderDash: [6, 4],
+                borderWidth: 2,
+                pointRadius: 0,
+                fill: false,
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            tooltip: { mode: 'nearest', intersect: false },
+            legend: { position: 'top' }
+        },
+        scales: {
+            x: { type: 'linear', title: { display: true, text: 'Années' } },
+            y: { min: 0, max: 7.5, title: { display: true, text: 'Indice ID' } }
+        }
+    }
+});
+
+// ── Contributions absolues ──
+new Chart(document.getElementById('chartContrib'), {
+    type: 'bar',
+    data: {
+        labels: ['αA (Trafic)', 'βCL (Climat)', '−γM (Matériau)', 'R (Total)'],
+        datasets: [{
+            data: [d.contrib_trafic, d.contrib_climat, d.contrib_materiau, d.R],
+            backgroundColor: ['#2563EB', '#16A34A', '#DC2626', '#7C3AED'],
+            borderRadius: 4,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { title: { display: true, text: 'pts/an' } }
+        }
+    }
+});
+
+// ── Contributions relatives % ──
+new Chart(document.getElementById('chartContribPct'), {
+    type: 'bar',
+    data: {
+        labels: ['Trafic αA', 'Climat βCL', 'Matériau −γM'],
+        datasets: [{
+            data: [d.contrib_trafic_pct, d.contrib_climat_pct, d.contrib_materiau_pct],
+            backgroundColor: ['#2563EB', '#16A34A', '#DC2626'],
+            borderRadius: 4,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false },
+            tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1) + ' %' } }
+        },
+        scales: {
+            y: { title: { display: true, text: '%' } }
+        }
+    }
+});
+
+// ── Paramètres A, CL, M ──
+new Chart(document.getElementById('chartParams'), {
+    type: 'bar',
+    data: {
+        labels: ['A (Trafic)', 'CL (Climat)', 'M (Matériau)'],
+        datasets: [{
+            data: [d.A, d.CL, d.M],
+            backgroundColor: ['#2563EB', '#16A34A', '#DC2626'],
+            borderRadius: 4,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, max: 1.6, title: { display: true, text: 'Valeur normalisée' } }
+        }
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VIZIR — Gestion des Chaussées{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e3a5f;
+            --accent: #2563EB;
+            --danger: #DC2626;
+            --warning: #D97706;
+            --success: #16A34A;
+        }
+        body { background: #f8fafc; font-family: 'Segoe UI', sans-serif; }
+        .navbar { background: var(--primary) !important; }
+        .navbar-brand { font-weight: 700; font-size: 1.2rem; letter-spacing: 0.5px; }
+        .sidebar { min-height: calc(100vh - 56px); background: white; border-right: 1px solid #e2e8f0; padding-top: 1.5rem; }
+        .sidebar .nav-link { color: #475569; border-radius: 8px; padding: 0.6rem 1rem; margin-bottom: 2px; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: #EFF6FF; color: var(--accent); font-weight: 600; }
+        .sidebar .nav-link i { width: 20px; }
+        .main-content { padding: 2rem; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06); }
+        .card-header { border-radius: 12px 12px 0 0 !important; }
+        .badge-risque-Critique { background: var(--danger); color: white; }
+        .badge-risque-Élevé { background: var(--warning); color: white; }
+        .badge-risque-Modéré { background: var(--success); color: white; }
+        .badge-risque-stable { background: var(--success); color: white; }
+        .stat-card { border-radius: 12px; padding: 1.25rem; color: white; }
+        .btn-primary { background: var(--accent); border-color: var(--accent); }
+        .btn-primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
+        .section-title { color: var(--primary); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #EFF6FF; }
+        .form-label { font-weight: 600; font-size: 0.875rem; color: #374151; }
+        .badge-risque { padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+<nav class="navbar navbar-dark navbar-expand-lg">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="{% url 'dashboard' %}">
+            <i class="bi bi-road me-2"></i>VIZIR — Dégradation des Chaussées
+        </a>
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link text-white" href="{% url 'tests_validation' %}">
+                <i class="bi bi-check-circle me-1"></i>Tests
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2 sidebar d-none d-md-block">
+            <nav class="nav flex-column px-2">
+                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+                    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+                </a>
+                <a class="nav-link" href="{% url 'troncon_create' %}">
+                    <i class="bi bi-plus-circle me-2"></i>Nouveau tronçon
+                </a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'comparatif' %}active{% endif %}" href="{% url 'comparatif' %}">
+                    <i class="bi bi-bar-chart-line me-2"></i>Vue comparative
+                </a>
+                <hr class="my-3">
+                <span class="section-title px-1">Exports</span>
+                <a class="nav-link" href="{% url 'export_excel' %}">
+                    <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
+                </a>
+                <hr class="my-3">
+                <a class="nav-link {% if request.resolver_match.url_name == 'tests_validation' %}active{% endif %}" href="{% url 'tests_validation' %}">
+                    <i class="bi bi-shield-check me-2"></i>Validation moteur
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main -->
+        <div class="col-md-10 main-content">
+            {% if messages %}
+                {% for msg in messages %}
+                <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+                    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

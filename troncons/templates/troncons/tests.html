@@ -1,0 +1,67 @@
+{% extends 'troncons/base.html' %}
+{% block title %}Validation du moteur — VIZIR{% endblock %}
+
+{% block content %}
+<h4 class="fw-bold mb-4" style="color: var(--primary)">
+    <i class="bi bi-shield-check me-2"></i>Validation du moteur de calcul
+</h4>
+
+<div class="alert {% if tous_ok %}alert-success{% else %}alert-danger{% endif %} d-flex align-items-center mb-4">
+    <i class="bi {% if tous_ok %}bi-check-circle-fill{% else %}bi-x-circle-fill{% endif %} me-3 fs-4"></i>
+    <div>
+        {% if tous_ok %}
+        <strong>✅ Tous les tests passent.</strong> Le moteur de calcul est conforme au cahier des charges (Section 10).
+        {% else %}
+        <strong>❌ Certains tests échouent.</strong> Vérifier le moteur avant mise en production.
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header fw-semibold" style="background: var(--primary); color: white;">
+        Tests de non-régression (4 cas du cahier des charges)
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-bordered mb-0">
+                <thead style="background: #EFF6FF;">
+                    <tr>
+                        <th>Cas</th><th>ID₀</th>
+                        <th>R attendu</th><th>R calculé</th>
+                        <th>ID(5) attendu</th><th>ID(5) calculé</th>
+                        <th>ID(10) attendu</th><th>ID(10) calculé</th>
+                        <th>Risque attendu</th><th>Risque calculé</th>
+                        <th>Résultat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for t in resultats %}
+                <tr class="{% if t.passed %}table-success{% else %}table-danger{% endif %}">
+                    <td class="fw-bold">T{{ t.cas }}</td>
+                    <td>{{ t.ID0 }}</td>
+                    <td>{{ t.R_attendu }}</td>
+                    <td>{{ t.R_calcule }}</td>
+                    <td>{{ t.ID5_attendu }}</td>
+                    <td>{{ t.ID5_calcule }}</td>
+                    <td>{{ t.ID10_attendu }}</td>
+                    <td>{{ t.ID10_calcule }}</td>
+                    <td>{{ t.risque_attendu }}</td>
+                    <td>{{ t.risque_calcule }}</td>
+                    <td class="text-center fw-bold">
+                        {% if t.passed %}<i class="bi bi-check-lg text-success"></i>{% else %}<i class="bi bi-x-lg text-danger"></i>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4 p-3 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+    <h6 class="fw-bold">Formule centrale du modèle :</h6>
+    <code>R = α·A + β·CL − γ·M</code><br>
+    <code>ID(t) = min(7, ID₀ + R·t)</code><br>
+    <code>T_critique = (7 − ID₀) / R</code>
+</div>
+{% endblock %}

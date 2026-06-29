@@ -1,0 +1,224 @@
+{% extends 'troncons/base.html' %}
+{% block title %}Saisie — {{ troncon.nom }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.mode-section { display: none; }
+.mode-section.active { display: block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Tableau de bord</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'troncon_detail' troncon.pk %}">{{ troncon.nom }}</a></li>
+            <li class="breadcrumb-item active">Saisie des données</li>
+        </ol>
+    </nav>
+    <h4 class="fw-bold" style="color: var(--primary)">Saisie des données — {{ troncon.nom }}</h4>
+    <p class="text-muted">{{ troncon.route }}</p>
+</div>
+
+<form method="post">
+{% csrf_token %}
+<div class="row g-4">
+
+    <!-- VIZIR + Coefficients -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header fw-semibold" style="background: var(--primary); color: white;">
+                <i class="bi bi-calendar-check me-2"></i>Inspection
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">{{ form_p.date_inspection.label }}</label>
+                    {{ form_p.date_inspection }}
+                    {% if form_p.date_inspection.errors %}<div class="text-danger small">{{ form_p.date_inspection.errors }}</div>{% endif %}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">{{ form_p.id0_vizir.label }}</label>
+                    {{ form_p.id0_vizir }}
+                    <div class="form-text">Échelle VIZIR : 0 (bon état) → 7 (état critique)</div>
+                    {% if form_p.id0_vizir.errors %}<div class="text-danger small">{{ form_p.id0_vizir.errors }}</div>{% endif %}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">{{ form_p.horizons.label }}</label>
+                    {{ form_p.horizons }}
+                    <div class="form-text">{{ form_p.horizons.help_text }}</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">{{ form_p.dc_deflexion.label }}</label>
+                    {{ form_p.dc_deflexion }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">{{ form_p.degradations_observees.label }}</label>
+                    {{ form_p.degradations_observees }}
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header fw-semibold" style="background: #EFF6FF; color: var(--primary);">
+                <i class="bi bi-sliders me-2"></i>Coefficients α, β, γ
+            </div>
+            <div class="card-body">
+                {% for field in form_c %}
+                <div class="mb-3">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}<div class="text-danger small">{{ field.errors }}</div>{% endif %}
+                </div>
+                {% endfor %}
+                <div class="alert alert-info small py-2 mb-0">
+                    Valeurs par défaut : α=0,40 / β=0,35 / γ=0,25
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paramètres A, CL, M -->
+    <div class="col-md-8">
+
+        <!-- Paramètre A -->
+        <div class="card mb-3">
+            <div class="card-header fw-semibold" style="background: #EFF6FF; color: var(--primary);">
+                <i class="bi bi-truck me-2"></i>Agressivité du trafic (A)
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Mode de saisie</label>
+                    <select name="mode_A" id="id_mode_A" class="form-select">
+                        <option value="direct" {% if form_p.mode_A.value == 'direct' or not form_p.mode_A.value %}selected{% endif %}>Valeur directe</option>
+                        <option value="detaille" {% if form_p.mode_A.value == 'detaille' %}selected{% endif %}>Calcul détaillé</option>
+                    </select>
+                </div>
+                <div id="A-direct" class="mode-section">
+                    <label class="form-label">Agressivité du trafic (A) — valeur normalisée</label>
+                    {{ form_p.A }}
+                    {% if form_p.A.errors %}<div class="text-danger small">{{ form_p.A.errors }}</div>{% endif %}
+                    <div class="form-text">Valeur normalisée entre 0 et ~1,5 (ex : 0.70)</div>
+                </div>
+                <div id="A-detaille" class="mode-section">
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <label class="form-label small">N_PL (nb poids lourds)</label>
+                            {{ form_p.N_PL }}
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label small">CAM (coeff. agressivité)</label>
+                            {{ form_p.CAM }}
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label small">Nref (essieux référence)</label>
+                            {{ form_p.Nref }}
+                        </div>
+                    </div>
+                    <div class="form-text mt-1">A = (N_PL × CAM) / Nref</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paramètre CL -->
+        <div class="card mb-3">
+            <div class="card-header fw-semibold" style="background: #EFF6FF; color: var(--primary);">
+                <i class="bi bi-cloud-rain me-2"></i>Coefficient climatique (CL)
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Mode de saisie</label>
+                    <select name="mode_CL" id="id_mode_CL" class="form-select">
+                        <option value="direct" {% if form_p.mode_CL.value == 'direct' or not form_p.mode_CL.value %}selected{% endif %}>Valeur directe</option>
+                        <option value="detaille" {% if form_p.mode_CL.value == 'detaille' %}selected{% endif %}>Calcul détaillé</option>
+                    </select>
+                </div>
+                <div id="CL-direct" class="mode-section">
+                    <label class="form-label">Coefficient climatique (CL) — valeur normalisée</label>
+                    {{ form_p.CL }}
+                    {% if form_p.CL.errors %}<div class="text-danger small">{{ form_p.CL.errors }}</div>{% endif %}
+                    <div class="form-text">Valeur normalisée entre 0 et 1 (ex : 0.60)</div>
+                </div>
+                <div id="CL-detaille" class="mode-section">
+                    <div class="row g-2">
+                        <div class="col-2"><label class="form-label small">P (pluie)</label>{{ form_p.P }}</div>
+                        <div class="col-2"><label class="form-label small">T (temp.)</label>{{ form_p.T }}</div>
+                        <div class="col-2"><label class="form-label small">H (humid.)</label>{{ form_p.H }}</div>
+                        <div class="col-2"><label class="form-label small">w1</label>{{ form_p.w1 }}</div>
+                        <div class="col-2"><label class="form-label small">w2</label>{{ form_p.w2 }}</div>
+                        <div class="col-2"><label class="form-label small">w3</label>{{ form_p.w3 }}</div>
+                    </div>
+                    <div class="form-text mt-1">CL = w1·P + w2·T + w3·H</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paramètre M -->
+        <div class="card mb-3">
+            <div class="card-header fw-semibold" style="background: #EFF6FF; color: var(--primary);">
+                <i class="bi bi-layers me-2"></i>Paramètre matériau (M)
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Mode de saisie</label>
+                    <select name="mode_M" id="id_mode_M" class="form-select">
+                        <option value="direct" {% if form_p.mode_M.value == 'direct' or not form_p.mode_M.value %}selected{% endif %}>Valeur directe</option>
+                        <option value="detaille" {% if form_p.mode_M.value == 'detaille' %}selected{% endif %}>Calcul détaillé</option>
+                    </select>
+                </div>
+                <div id="M-direct" class="mode-section">
+                    <label class="form-label">Paramètre matériau (M) — valeur normalisée</label>
+                    {{ form_p.M }}
+                    {% if form_p.M.errors %}<div class="text-danger small">{{ form_p.M.errors }}</div>{% endif %}
+                    <div class="form-text">Valeur normalisée entre 0 et 1 (ex : 0.80)</div>
+                </div>
+                <div id="M-detaille" class="mode-section">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label small">CBR (%)</label>
+                            {{ form_p.CBR }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small">eref (cm)</label>
+                            {{ form_p.eref }}
+                        </div>
+                    </div>
+                    <div class="form-text mt-1">e = 482,4 / (CBR + 5) ; M = e / eref</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-2">
+            <button type="submit" class="btn btn-success btn-lg">
+                <i class="bi bi-calculator me-2"></i>Calculer et enregistrer
+            </button>
+            <a href="{% url 'troncon_detail' troncon.pk %}" class="btn btn-outline-secondary btn-lg">Annuler</a>
+        </div>
+    </div>
+</div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleMode(param, mode) {
+    var direct = document.getElementById(param + '-direct');
+    var detaille = document.getElementById(param + '-detaille');
+    if (direct) direct.classList.toggle('active', mode === 'direct');
+    if (detaille) detaille.classList.toggle('active', mode === 'detaille');
+}
+
+// Init au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    ['A', 'CL', 'M'].forEach(function(param) {
+        var sel = document.getElementById('id_mode_' + param);
+        if (sel) {
+            toggleMode(param, sel.value);
+            sel.addEventListener('change', function() {
+                toggleMode(param, this.value);
+            });
+        }
+    });
+});
+</script>
+{% endblock %}
