@@ -1,12 +1,17 @@
 from pathlib import Path
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-vizir-road-degradation-secret-key-change-in-production'
 
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    'yannisraelrussel.pythonanywhere.com',
+    'localhost',
+    '127.0.0.1',
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -60,11 +65,17 @@ TIME_ZONE = 'Africa/Brazzaville'
 USE_I18N = True
 USE_TZ = True
 
+# =============================================================
+# STATIC FILES — Configuration PythonAnywhere
+# =============================================================
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = '/home/yannisraelrussel/vizir_project/staticfiles'
+
+# =============================================================
+# MEDIA FILES — Configuration PythonAnywhere
+# =============================================================
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/home/yannisraelrussel/vizir_project/media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
